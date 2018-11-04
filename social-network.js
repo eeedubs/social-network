@@ -1,41 +1,48 @@
 var _ = require("underscore");
+var without = require("without");
 
 var data = {
   f01: {
     name: "Alice",
     age: 15,
     follows: ["f02", "f03", "f04"]
-    // followers: Charlie, Debbie (2)
+    // followers: Charlie ("f03"), Debbie ("f04") (2)
+    // sum of f + ff: 2 (total) + 1 (Elizabeth) =>  3
   },
   f02: {
     name: "Bob",
     age: 20,
     follows: ["f05", "f06"]
-    // followers: Alice, Debbie (2)
+    // followers: Alice ("f01"), Debbie ("f04") (2)
+    // sum of f + ff: 2 + 1 (Charlie) + 1 (Elizabeth) =>  4
   },
   f03: {
     name: "Charlie",
     age: 35,
     follows: ["f01", "f04", "f06"]
-    // followers: Alice, Debbie (2)
+    // followers: Alice ("f01"), Debbie ("f04") (2)
+    // sum of f + ff: 2 + 1 (Debbie) =>   3
   },
   f04: {
     name: "Debbie",
     age: 40,
     follows: ["f01", "f02", "f03", "f05", "f06"]
-    // followers: Alice, Charlie, Elizabeth (3)
+    // followers: Alice ("f01"), Charlie ("f03"), Elizabeth ("f04") (3)
+    // sum of f + ff: 3 + 2 (Bob + Finn) =>   5
   },
   f05: {
     name: "Elizabeth",
     age: 45,
     follows: ["f04"]
-    // followers: Bob, Debbie, Finn (3)
+    // followers: Bob ("f02"), Debbie ("f04"), Finn ("f05") (3)
+    // sum of f + ff: 3 + 1 (Alice) + 1 (Charlie) =>    5
   },
   f06: {
     name: "Finn",
     age: 25,
     follows: ["f05"]
-    // followers: Bob, Charlie, Debbie (3)
+    // followers: Bob ("f02"), Charlie ("f03"), Debbie ("f04") (3)
+    // sum of f + ff: 3 + 1 (Alice) + 1 (Elizabeth) =>  5
   }
 };
 // --------------------------------
@@ -59,6 +66,10 @@ var backToCode = function (name){
       return codeName;
     }
   }
+}
+
+function mergeNoRepeat(array1, array2){
+  
 }
 
 // get a user's followers
@@ -108,6 +119,11 @@ var getFollowing = function(userId){
   }
 }
 
+function containsUser(arrayToCheck, user){
+  var doesContain = _.contains(arrayToCheck, user);
+  return doesContain;
+}
+
 // get a user's age
 var getAge = function(userId){
   var realName = allNames[userId]; // real name equals userId
@@ -138,7 +154,8 @@ var getFollowingOverThirty = function(userId){
       following += addName + ", ";
     }
   }
-  return following.substring(0, following.length - 2);
+  // return following.substring(0, following.length - 2);
+  return removeComma(following);
 }
 
 // count the number of followers of a user
@@ -171,6 +188,11 @@ var countFollowingOverThirty = function(userId){
   return length;
 }
 
+var removeComma = function(input){
+  var result = input.substring(0, input.length - 2);
+  return result;
+}
+
 //----------------------------------------------------------------------------------------
 // FIRST ASSIGNMENT - COMPLETE
 
@@ -179,14 +201,13 @@ var countFollowingOverThirty = function(userId){
 
 var allData = function() {
   for (var person in data){
-    var temp = person;
-    var name = allNames[temp];
-    var followers = getFollowers(temp);
-    var following = getFollowing(temp);
+    var name = allNames[person];
+    var followers = getFollowers(person);
+    var following = getFollowing(person);
     console.log("Name: " + name + ";   Following: " + following + ";   Followers: " + followers);
   }
 }
-// allData();
+allData();
 
 // Output:
 // Name: Alice;   Following: Bob, Charlie, Debbie;   Followers: Charlie, Debbie
@@ -218,7 +239,7 @@ var followsMost = function () {
   }
   console.log("Following the most people: " + name);
 }
-// followsMost();
+followsMost();
 
 // Output:
 // Following the most people: Debbie
@@ -254,7 +275,7 @@ var followersMost = function () {
   }
   console.log("Most followers: " + name);
 }
-// followersMost();
+followersMost();
 
 // Output:
 // Most followers: Debbie, Elizabeth, Finn
@@ -291,7 +312,7 @@ var followersOverThirty = function () {
   }
   console.log("Most followers over 30: " + name);
 }
-// followersOverThirty();
+followersOverThirty();
 
 // Output:
 // Most followers over 30: Alice, Debbie, Finn
@@ -318,13 +339,13 @@ var followsOverThirty = function () {
   }
   console.log("Follows the most people over 30: " + name);
 }
-// followsOverThirty();
+followsOverThirty();
 
 // Output:
 // Follows the most people over 30: Alice, Debbie
 
 //----------------------------------------------------------------------------------------
-// ASSIGNMENT 6
+// ASSIGNMENT 6 - COMPLETE
 
 // List those who follow someone that doesn't follow them back
 
@@ -345,31 +366,67 @@ var noFollowBack = function () {
     var following = getFollowing(firstUser); // gets the user's following list √
     for (var secondUser in data[firstUser]["follows"]){ // for each user followed (second level)
       var secondFollow = getFollowing(data[firstUser]["follows"][secondUser]);
+      // define a variable as the followers of the second level user
       var secondFollowArray = secondFollow.split(", ");
-      var doesContain = _.contains(secondFollowArray, allNames[firstUser]);
-      if (doesContain){
-        name += ", " + firstUser;
+      // convert the secondFollow string to a variable
+      var doesContain = _.contains(secondFollowArray, allNames[firstUser]); 
+      // assign a variable: evaluates if the first user is followed by those who they follow
+      if (!doesContain){ // if the followed user doesn't follow back
+        var temp = name.split(", "); // split the names at commas
+        var secondContain = _.contains(temp, allNames[firstUser]); // 
+        if (!secondContain){
+          name += allNames[firstUser] + ", ";
+        }
       }
-
-      // if (secondUser_.contains(secondFollow), firstUser);{
-      //   name += ", " + firstUser;
-      // }
     }
-    console.log("Follows someone who doesn't follow them back: " + name);
-      // var secondFollowing = getFollowing(usersFollowing);
-      // console.log(usersFollowing);
-      // if (usersFollowing_.contains(usersFollowing))
-      // }
   }
+  console.log("Follows someone who doesn't follow them back: " + removeComma(name));
 }
 noFollowBack();
 
-
+// Output:
+// Follows someone who doesn't follow them back: Alice, Bob, Charlie, Debbie, Finn
+//
 //----------------------------------------------------------------------------------------
 // ASSIGNMENT 7
 
 // List everyone and their reach (sum of # of followers and the # of those followers' followers)
 
-var listReach = function() {
+// go through each user and put their followers in an object
+// look at each user's followers and see who their followers are
+// if the follower's followers contain duplicates or the initial user, exclude them from the list
 
+var listReach = function() {
+  var followers = [];
+  var removedSelf = [];
+  var finalOutput = {};
+  for (var user in data){
+    // for each user in the data
+    let firstUserName = allNames[user];
+    // gets username of first user
+    followers = getFollowers(user).split(", ");
+    // puts the users followers into an array
+    finalOutput[user] = followers;
+    for (var secondUser in followers){
+      let secondFollowerIdName = backToCode(followers[secondUser]);
+      let secondFollowerFollowers = getFollowers(secondFollowerIdName).split(", ");
+      removedSelf = _.without(secondFollowerFollowers, firstUserName);
+      for (var item in removedSelf){
+        if (!containsUser(followers, removedSelf[item])){
+          var nonDuplicate = removedSelf[item];
+          finalOutput[user].push(nonDuplicate);
+        }
+      }
+    }
+    console.log("Total reach of " + firstUserName + ": " +  finalOutput[user].length)
+  }
 }
+listReach()
+
+// Output:
+// Total reach of Alice: 3
+// Total reach of Bob: 4
+// Total reach of Charlie: 3
+// Total reach of Debbie: 5
+// Total reach of Elizabeth: 5
+// Total reach of Finn: 5
